@@ -24,75 +24,119 @@
  */
 package it.unicam.cs.slidingpuzzle.api;
 
+import java.util.Random;
+
+/**
+ * This class is used to represent the schema of a puzzle.
+ */
 public class PuzzleBoard {
 
-    private int[][] cells;
+    /**
+     * Default size of a schema.
+     */
+    public static final int DEFAULT_SIZE = 4;
 
-    private int emptyX;
-    private int emptyY;
+    /**
+     * An array used to store the state of this schema.
+     */
+    private final int[][] cells;
 
+    /**
+     * The size of this schema.
+     */
+    private final int size;
+
+    private Position freeCell;
+
+    /**
+     * Creates a new puzzle with the default size.
+     */
     public PuzzleBoard() {
-        this.cells = new int[4][4];
+        this(DEFAULT_SIZE);
+    }
+
+    /**
+     * Creates a new puzzle of the given size.
+     *
+     * @param size the size of the created schema.
+     */
+    public PuzzleBoard(int size) {
+        this.size = size;
+        this.cells = new int[size][size];
         reset();
     }
 
+    /**
+     * Resets the state of this schema.
+     */
     private void reset() {
-        this.emptyX = 3;
-        this.emptyY = 3;
+        freeCell = new Position(size);
         int counter = 1;
-        for(int i=0; i < 4; i++) {
-            for(int j=0; j < 4; j++) {
-                this.cells[i][j] = (counter++)%16;
+        for(int i=0; i < size; i++) {
+            for(int j=0; j < size; j++) {
+                this.cells[i][j] = (counter++)%(size*size);
             }
         }
     }
 
-    public boolean moveUp() {
-        if (emptyY<3) {
-            cells[emptyX][emptyY] = cells[emptyX][emptyY+1];
-            emptyY++;
-            cells[emptyX][emptyY] = 0;
-            return true;
-        } else {
+    public boolean move(SlidingDirection dir) {
+        Position movingCell = freeCell.movingCell(dir);
+        if (movingCell == null) {
             return false;
         }
+        set(freeCell, get(movingCell));
+        set(movingCell, 0);
+        freeCell = movingCell;
+        return true;
     }
 
-    public boolean moveDown() {
-        if (emptyY>0) {
-            cells[emptyX][emptyY] = cells[emptyX][emptyY-1];
-            emptyY--;
-            cells[emptyX][emptyY] = 0;
-            return true;
-        } else {
-            return false;
-        }
+    private int get(Position p) {
+        return get(p.getRow(), p.getColumn());
     }
 
-    public boolean moveLeft() {
-        if (emptyX>0) {
-            cells[emptyX][emptyY] = cells[emptyX-1][emptyY];
-            emptyX--;
-            cells[emptyX][emptyY] = 0;
-            return true;
-        } else {
-            return false;
-        }
+    private void set(Position p, int v) {
+        this.cells[p.getRow()][p.getColumn()] = v;
     }
 
-    public boolean moveRight() {
-        if (emptyX<3) {
-            cells[emptyX][emptyY] = cells[emptyX+1][emptyY];
-            emptyX++;
-            cells[emptyX][emptyY] = 0;
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     public int get(int x, int y) {
         return this.cells[x][y];
     }
 
+    public void shuffle(int movements) {
+        shuffle(new Random(), movements);
+    }
+
+    public void shuffle(Random random, int movements) {
+        for(int i=0; i<movements; i++) {
+            SlidingDirection[] enabledMovement = enabledMoves();
+            if (enabledMovement.length>0) {
+                move(enabledMovement[random.nextInt(enabledMovement.length)]);
+            }
+        }
+    }
+
+    public SlidingDirection[] enabledMoves() {
+        return freeCell.enabledMoves();
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public boolean isEmpty(int i, int j) {
+        return cells[i][j]==0;
+    }
+
+    public boolean solved() {
+        int counter = 1;
+        for(int i=0; i<size; i++) {
+            for(int j=0; j<size; j++) {
+                if (cells[i][j] != (counter++)%(size*size)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
