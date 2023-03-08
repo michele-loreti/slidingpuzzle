@@ -47,6 +47,7 @@ public class PuzzleBoard {
     private final int size;
 
     private Position freeCell;
+    private int shufflingDegree;
 
     /**
      * Creates a new puzzle with the default size.
@@ -70,6 +71,7 @@ public class PuzzleBoard {
      * Resets the state of this schema.
      */
     private void reset() {
+        shufflingDegree = 0;
         freeCell = new Position(size);
         int counter = 1;
         for(int i=0; i < size; i++) {
@@ -84,8 +86,10 @@ public class PuzzleBoard {
         if (movingCell == null) {
             return false;
         }
-        set(freeCell, get(movingCell));
+        int n = get(movingCell);
+        set(freeCell, n);
         set(movingCell, 0);
+        shufflingDegree = shufflingDegree-movingCell.getDisorderDegree(n)+freeCell.getDisorderDegree(n);
         freeCell = movingCell;
         return true;
     }
@@ -129,14 +133,6 @@ public class PuzzleBoard {
     }
 
     public boolean solved() {
-        int counter = 1;
-        for(int i=0; i<size; i++) {
-            for(int j=0; j<size; j++) {
-                if (cells[i][j] != (counter++)%(size*size)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return this.shufflingDegree==0;
     }
 }

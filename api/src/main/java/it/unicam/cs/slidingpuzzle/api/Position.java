@@ -86,4 +86,17 @@ public class Position {
             nextPositions.add(SlidingDirection.DOWN);
         return nextPositions.toArray(new SlidingDirection[0]);
     }
+
+    /**
+     * Returns the Manhattan distance obtained when considering the
+     * value n placed in this location.
+     *
+     * @param n an integer value
+     * @return the Manhattan distance obtained when considering the
+     * value n placed in this location.
+     */
+    public int getDisorderDegree(int n) {
+        // |rg - rc|+|cg - cc|
+        return Math.abs(this.row-(n-1)/this.size) + Math.abs(this.column-(n-1)%this.size);
+    }
 }
